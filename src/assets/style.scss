@@ -17,6 +17,15 @@ main.questionPage {
             color: white !important;
         }
     }
+
+    button.btn {
+        border: none;
+        &:hover,
+        &.active {
+            background-color: #DD1785 !important;
+            color: white;
+        }
+    }
 }
 
 main.resultPage {

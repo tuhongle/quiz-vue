@@ -77,22 +77,23 @@
                         <h3 class="lh-lg fw-bold">{{ currentQuestion.question }}</h3>
                         <ul class="answerLists list-unstyled mt-5">
                             <li class="answer" v-for="answer in shuffledAnswers" :key="answer">
-                                <label class="btn btn-light w-100 py-3 fs-5 mb-3">
-                                    <input type="radio">
+                                <label class="btn btn-light w-100 py-3 fs-5 mb-3" :class="{'active': answer === currentAnswer}">
+                                    <input type="radio" class="d-none" :value="answer" v-model="currentAnswer">
                                     {{ answer }}
                                 </label>
                             </li>                          
                         </ul>
                         <div class="navigation d-flex justify-content-between mb-5">
-                            <button class="btn btn-secondary px-5 py-3">Back</button>
-                            <button class="btn btn-secondary px-5 py-3">Next</button>
+                            <button class="btn btn-light px-5 py-3" :disabled="this.currentQuestionNumber === 1" @click="previousQuestion">Back</button>
+                            <button class="btn btn-light px-5 py-3" :disabled="!currentAnswer" :class="{'active': currentAnswer}" @click="nextQuestion">
+                                <span v-if="currentQuestionNumber !== 5">Next</span>
+                                <span v-else>Submit</span>
+                            </button>
                         </div>
                         <div class="pagination justify-content-center">
-                            <button class="btn btn-secondary py-2 px-3 me-2">1</button>
-                            <button class="btn btn-secondary py-2 px-3 me-2">2</button>
-                            <button class="btn btn-secondary py-2 px-3 me-2">3</button>
-                            <button class="btn btn-secondary py-2 px-3 me-2">4</button>
-                            <button class="btn btn-secondary py-2 px-3 me-2">5</button>
+                            <button class="btn btn-light py-2 px-3 me-2" v-for="n in 5" :class="{'active': n === currentQuestionNumber}" :disabled="(!currentAnswer || n !== (currentQuestionNumber + 1)) && n > currentQuestionNumber">
+                                {{ n }}
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -105,7 +106,7 @@
             <div class="container-lg py-5 text-center">
                 <div class="row border-bottom border-3">
                     <div class="col">
-                        <div class="display-1 rounded-circle border-3 border border-light mb-5 text-center d-flex align-items-center justify-content-center fw-bold mx-auto" id="score">1/5</div>
+                        <div class="display-1 rounded-circle border-3 border border-light mb-5 text-center d-flex align-items-center justify-content-center fw-bold mx-auto" id="score">{{ score }}/5</div>
                         <h1 class="fw-bold mb-5">Better luck next time</h1>
                     </div>
                 </div>
@@ -162,7 +163,11 @@ export default {
             category: '',
             questionList: [],
             currentQuestion: {},
+            currentQuestionNumber: 1,
             currentAnswers: [],
+            currentAnswer: '',
+            yourAnswers: [],
+            score: 0,
         }
     },
     methods: {
@@ -184,12 +189,15 @@ export default {
                 console.log(err);
             }
         },
+        getQuestion() {
+            this.currentQuestion = this.questionList[this.currentQuestionNumber - 1];
+            this.currentAnswers = [this.currentQuestion.correct_answer, ...this.currentQuestion.incorrect_answers]
+        },
         startGame() {
             this.homePage = false;
             this.questionPage = true;
             this.resultPage = false;
-            this.currentQuestion = this.questionList[0];
-            this.currentAnswers = [this.currentQuestion.correct_answer, ...this.currentQuestion.incorrect_answers]
+            this.getQuestion();
         },
         shuffle(array) {
             let currentIndex = array.length,  randomIndex;
@@ -207,11 +215,26 @@ export default {
             }
 
             return array;
+        },
+        nextQuestion() {
+            if (this.currentAnswer === this.currentQuestion.correct_answer) {
+                this.score ++;
+            };
+            this.yourAnswers.push(this.currentAnswer);
+            this.currentAnswer = '';
+            this.currentQuestionNumber ++;
+            this.getQuestion();
+        },
+        previousQuestion() {
+            
         }
     },
     computed: {
         shuffledAnswers() {
             return this.shuffle(this.currentAnswers);
+        },
+        correctAnswers() {
+            return this.questionList.map(el => el.correct_answer);
         }
     },
     async mounted() {
@@ -219,7 +242,7 @@ export default {
     },
     async updated() {
         if (this.category && this.difficulty) {
-            const URLtoFetch = `https://opentdb.com/api.php?amount=10&category=${this.category}&difficulty=${this.difficulty}&type=multiple`;
+            const URLtoFetch = `https://opentdb.com/api.php?amount=5&category=${this.category}&difficulty=${this.difficulty}&type=multiple`;
             this.questionList = await this.getQuestionList(URLtoFetch);
         };
     }
