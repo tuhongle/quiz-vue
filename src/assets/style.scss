@@ -2,13 +2,14 @@
 
 #app {
     font-family: Avenir, Helvetica, Arial, sans-serif;
-    background-color: $dark;
+    background-color: #0E1324;
     width: 100vw;
     min-height: 100vh;
 }
 
 main.homePage,
-main.questionPage {
+main.questionPage,
+main.resultPage {
     label.btn {
         border: none;
         &:hover,
