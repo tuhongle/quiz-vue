@@ -31,102 +31,102 @@
     </section>
 </template>
 
-<script>
-export default {
-    name: 'QuestionPage',
-    props: ['difficulty', 'category', 'questionListProps'],
-    data() {
-        return {
-            questionList: [],
-            currentQuestion: {},
-            currentNumber: 1,
-            backNumber: 1,
-            currentAnswers: [],
-            currentAnswer: '',
-            yourAnswers: [],
-            score: 0,
-        }
-    },
-    methods: {
-        getQuestionList: async (URL) => {
-            try {
-                const response = await fetch(URL);
-                const jsonResponse = await response.json();
-                return jsonResponse.results;
-            } catch (err) {
-                console.log(err);
-            }
-        },
-        getQuestion(num) {
-            this.currentQuestion = this.questionList[num - 1];
-            this.currentAnswers = [this.currentQuestion.correct_answer, ...this.currentQuestion.incorrect_answers]
-        },
-        shuffle(array) {
-            let currentIndex = array.length,  randomIndex;
+<script setup>
+import { onMounted, ref, computed, onUpdated } from 'vue';
 
-            // While there remain elements to shuffle.
-            while (currentIndex != 0) {
+const questionList = ref([]);
+const currentQuestion = ref({});
+const currentNumber = ref(1);
+const backNumber = ref(1);
+const currentAnswers = ref([]);
+const currentAnswer = ref('');
+const yourAnswers = ref([]);
 
-                // Pick a remaining element.
-                randomIndex = Math.floor(Math.random() * currentIndex);
-                currentIndex--;
+/* const props = defineProps({
+    difficulty: String,
+    category: String,
+    questionListProps: String
+}); */
+const props = defineProps(['difficulty','category','questionListProps']);
+const emit = defineEmits(['submit']);
 
-                // And swap it with the current element.
-                [array[currentIndex], array[randomIndex]] = [
-                array[randomIndex], array[currentIndex]];
-            }
+const correctAnswers = computed(() => {
+    return questionList.value.map(el => el.correct_answer);
+});
+const shuffledAnswers = computed(() => {
+    return shuffle(currentAnswers.value);
+});
+const titleList = computed(() => {
+    return questionList.value.map(el => el.question);
+});
 
-            return array;
-        },
-        nextQuestion() {
-            if (this.currentNumber === 5) {
-                this.yourAnswers.push(this.currentAnswer);
-                this.$emit('submit',[this.yourAnswers, this.correctAnswers, this.titleList, this.questionList])
-            } else {
-                if (this.backNumber < this.currentNumber) {
-                    this.yourAnswers[this.backNumber - 1] = this.currentAnswer;
-                    this.backNumber ++;
-                    this.getQuestion(this.backNumber);
-                    this.currentAnswer = this.yourAnswers[this.backNumber - 1];
-                } else {
-                    this.yourAnswers.push(this.currentAnswer);
-                    this.currentAnswer = '';
-                    this.currentNumber ++;
-                    this.backNumber ++ ;
-                    this.getQuestion(this.currentNumber);
-                }
-            }
-        },
-        previousQuestion() {
-            this.backNumber --;
-            this.getQuestion(this.backNumber);
-            this.currentAnswer = this.yourAnswers[this.backNumber - 1];
-        },
-        showPreviousQuestion(n) {
-            this.backNumber = n;
-            this.getQuestion(this.backNumber);
-            this.currentAnswer = this.yourAnswers[this.backNumber - 1];
-        }
-    },
-    computed: {
-        shuffledAnswers() {
-            return this.shuffle(this.currentAnswers);
-        },
-        correctAnswers() {
-            return this.questionList.map(el => el.correct_answer);
-        },
-        titleList() {
-            return this.questionList.map(el => el.question);
-        }
-    },
-    async mounted() {
-        if (!this.questionListProps.length) {
-            const URLtoFetch = `https://opentdb.com/api.php?amount=5&category=${this.category}&difficulty=${this.difficulty}&type=multiple`;
-            this.questionList = await this.getQuestionList(URLtoFetch);
+const getQuestionList = async (URL) => {
+    try {
+        const response = await fetch(URL);
+        const jsonResponse = await response.json();
+        return jsonResponse.results;
+    } catch (err) {
+        console.log(err);
+    }
+};
+const getQuestion = (num) => {
+    currentQuestion.value = questionList.value[num - 1];
+    currentAnswers.value = [currentQuestion.value.correct_answer, ...currentQuestion.value.incorrect_answers]
+};
+const shuffle = (array) => {
+    let currentIndex = array.length,  randomIndex;
+
+    // While there remain elements to shuffle.
+    while (currentIndex != 0) {
+
+        // Pick a remaining element.
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+
+        // And swap it with the current element.
+        [array[currentIndex], array[randomIndex]] = [
+        array[randomIndex], array[currentIndex]];
+    }
+
+    return array;
+};
+const nextQuestion = () => {
+    if (currentNumber.value === 5) {
+        yourAnswers.value.push(currentAnswer.value);
+        emit('submit',[yourAnswers.value, correctAnswers.value, titleList.value, questionList.value]);
+    } else {
+        if (backNumber.value < currentNumber.value) {
+            yourAnswers.value[backNumber.value - 1] = currentAnswer.value;
+            backNumber ++;
+            getQuestion(backNumber.value);
+            currentAnswer.value = yourAnswers.value[backNumber.value - 1];
         } else {
-            this.questionList = this.questionListProps;
+            yourAnswers.value.push(currentAnswer.value);
+            currentAnswer.value = '';
+            currentNumber.value ++;
+            backNumber.value ++ ;
+            getQuestion(currentNumber.value);
         }
-        this.getQuestion(this.currentNumber);
-    },
-}
+    }
+};
+const previousQuestion = () => {
+    backNumber.value --;
+    getQuestion(backNumber.value);
+    currentAnswer.value = yourAnswers.value[backNumber.value - 1];
+};
+const showPreviousQuestion = (n) => {
+    backNumber.value = n;
+    getQuestion(backNumber.value);
+    currentAnswer.value = yourAnswers.value[backNumber.value - 1];
+};
+
+onMounted(async () => {
+    if (!props.questionListProps.length) {
+        const URLtoFetch = `https://opentdb.com/api.php?amount=5&category=${props.category}&difficulty=${props.difficulty}&type=multiple`;
+        questionList.value = await getQuestionList(URLtoFetch);
+    } else {
+        questionList.value = props.questionListProps;
+    }
+    getQuestion(currentNumber.value);
+});
 </script>

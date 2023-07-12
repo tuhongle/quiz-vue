@@ -68,32 +68,31 @@
     </section>
 </template>
 
-<script>
-export default {
-    name: 'Homepage',
-    data() {
-        return {
-            categoryList: [],
-            difficulty: '',
-            category: '',
-        }
-    },
-    methods: {
-        getCategories: async () => {
-            try {
-                const response = await fetch('https://opentdb.com/api_category.php');
-                const jsonResponse = await response.json();
-                return jsonResponse.trivia_categories;
-            } catch (err) {
-                console.log(err);
-            }
-        },
-        startGame() {
-            this.$emit('start',[this.difficulty, this.category]);
-         },
-    },
-    async mounted() {
-        this.categoryList = await this.getCategories();
-    },
-}
+<script setup>
+import { onMounted, ref } from "vue";
+
+const categoryList = ref([]);
+const difficulty = ref('');
+const category = ref('');
+
+const emit = defineEmits(['start'])
+
+const getCategories = async () => {
+    try {
+        const response = await fetch('https://opentdb.com/api_category.php');
+        const jsonResponse = await response.json();
+        return jsonResponse.trivia_categories;
+    } catch (err) {
+        console.log(err);
+    }
+};
+
+const startGame = () => {
+    emit('start',[difficulty.value, category.value]);
+};
+
+onMounted(async () => {
+    categoryList.value = await getCategories();
+});
+
 </script>

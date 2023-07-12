@@ -41,41 +41,36 @@
     </section>
 </template>
 
-<script>
-export default {
-    name: 'ResultPage',
-    props: ['yourAnswers', 'correctAnswers', 'titleList'],
-    data() {
-        return {}
-    },
-    computed: {
-        questionResults() {
-            const results = [];
-            for (let i = 0; i < this.titleList.length; i ++) {
-                results.push([this.titleList[i], this.correctAnswers[i], this.yourAnswers[i]]);
-            };
-            return results;
-        },
-        score() {
-            let score = 0;
-            for (let i = 0; i < this.correctAnswers.length; i ++) {
-                if (this.yourAnswers[i] === this.correctAnswers[i]) {
-                    score ++;
-                };
-            };
-            return score;
-        }
-    },
-    methods: {
-        tryAgain() {
-            this.$emit('tryAgain');
-        },
-        restart() {
-            this.$emit('restart');
-        },
-        newGame() {
-            this.$emit('newGame');
-        }
-    }
-}
+<script setup>
+import { computed } from 'vue';
+
+const props = defineProps(['yourAnswers', 'correctAnswers', 'titleList']);
+const emit = defineEmits(['tryAgain', 'restart', 'newGame']);
+
+const questionResults = computed(() => {
+    const results = [];
+    for (let i = 0; i < props.titleList.length; i ++) {
+        results.push([props.titleList[i], props.correctAnswers[i], props.yourAnswers[i]]);
+    };
+    return results;
+});
+const score = computed(() => {
+    let score = 0;
+    for (let i = 0; i < props.correctAnswers.length; i ++) {
+        if (props.yourAnswers[i] === props.correctAnswers[i]) {
+            score ++;
+        };
+    };
+    return score;
+});
+
+const tryAgain = () => {
+    emit('tryAgain');
+};
+const restart = () => {
+    emit('restart');
+};
+const newGame = () => {
+    emit('newGame');
+};
 </script>
