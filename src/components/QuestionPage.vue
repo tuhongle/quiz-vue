@@ -14,14 +14,14 @@
                         </li>                          
                     </ul>
                     <div class="navigation d-flex justify-content-between mb-5">
-                        <button class="btn btn-light px-5 py-3" :disabled="this.currentNumber === 1 || this.backNumber === 1" @click="previousQuestion">Back</button>
+                        <button class="btn btn-light px-5 py-3" :disabled="currentNumber === 1 || backNumber === 1" @click="previousQuestion">Back</button>
                         <button class="btn btn-light px-5 py-3" :disabled="!currentAnswer" :class="{'active': currentAnswer}" @click="nextQuestion">
                             <span v-if="currentNumber !== 5">Next</span>
                             <span v-else>Submit</span>
                         </button>
                     </div>
                     <div class="pagination justify-content-center">
-                        <button class="btn btn-light py-2 px-3 me-2" v-for="n in 5" :class="{'active': n === currentNumber}" :disabled="(!currentAnswer || n !== (currentNumber + 1)) && n > currentNumber" @click="showPreviousQuestion(n)">
+                        <button class="btn btn-light py-2 px-3 me-2" v-for="n in 5" :class="{'active': n === backNumber}" :disabled="!(n <= currentNumber)" @click="showPreviousQuestion(n)">
                             {{ n }}
                         </button>
                     </div>
@@ -32,7 +32,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, computed, onUpdated } from 'vue';
+import { ref, computed } from 'vue';
 
 const questionList = ref([]);
 const currentQuestion = ref({});
@@ -97,7 +97,7 @@ const nextQuestion = () => {
     } else {
         if (backNumber.value < currentNumber.value) {
             yourAnswers.value[backNumber.value - 1] = currentAnswer.value;
-            backNumber ++;
+            backNumber.value ++;
             getQuestion(backNumber.value);
             currentAnswer.value = yourAnswers.value[backNumber.value - 1];
         } else {
@@ -115,18 +115,19 @@ const previousQuestion = () => {
     currentAnswer.value = yourAnswers.value[backNumber.value - 1];
 };
 const showPreviousQuestion = (n) => {
+    if (n > backNumber.value) {
+        nextQuestion();
+    };
     backNumber.value = n;
     getQuestion(backNumber.value);
     currentAnswer.value = yourAnswers.value[backNumber.value - 1];
 };
 
-onMounted(async () => {
-    if (!props.questionListProps.length) {
-        const URLtoFetch = `https://opentdb.com/api.php?amount=5&category=${props.category}&difficulty=${props.difficulty}&type=multiple`;
-        questionList.value = await getQuestionList(URLtoFetch);
-    } else {
-        questionList.value = props.questionListProps;
-    }
-    getQuestion(currentNumber.value);
-});
+if (!props.questionListProps.length) {
+    const URLtoFetch = `https://opentdb.com/api.php?amount=5&category=${props.category}&difficulty=${props.difficulty}&type=multiple`;
+    questionList.value = await getQuestionList(URLtoFetch);
+} else {
+    questionList.value = props.questionListProps;
+}
+getQuestion(currentNumber.value);
 </script>

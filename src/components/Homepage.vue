@@ -69,7 +69,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 
 const categoryList = ref([]);
 const difficulty = ref('');
@@ -87,12 +87,14 @@ const getCategories = async () => {
     }
 };
 
+/* await fetch('https://opentdb.com/api_category.php')
+    .then(response => response.json())
+    .then(data => categoryList.value = data.trivia_categories) */
+
 const startGame = () => {
     emit('start',[difficulty.value, category.value]);
 };
 
-onMounted(async () => {
-    categoryList.value = await getCategories();
-});
+categoryList.value = await getCategories();
 
 </script>

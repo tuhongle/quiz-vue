@@ -5,7 +5,17 @@
         <Homepage @start="OpenQuestionPage" />
       </template>
       <template #fallback>
-        Loading...
+        <div class="container-lg vw-100 vh-100 d-flex justify-content-center align-items-center">
+          <div class="card bg-transparent text-center p-5">
+            <h1 class="display-1 fw-bold fst-italic">Take A Quiz</h1>
+            <h3 class="display-3 fst-italic">Loading...</h3>
+            <div class="d-flex justify-content-center">
+              <div class="spinner-border m-3" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </template>
     </Suspense>
   </main>
@@ -15,7 +25,17 @@
         <QuestionPage :difficulty="difficulty" :category="category" :questionListProps="questionList" @submit="OpenResultPage"/>
       </template>
       <template #fallback>
-        Loading...
+        <div class="container-lg vw-100 vh-100 d-flex justify-content-center align-items-center">
+          <div class="card bg-transparent text-center p-5">
+            <h1 class="display-1 fw-bold fst-italic">Thinking of questions</h1>
+            <h3 class="display-3 fst-italic">Loading...</h3>
+            <div class="d-flex justify-content-center">
+              <div class="spinner-border m-3" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </template>
     </Suspense>
   </main>
@@ -27,8 +47,8 @@
 <script setup>
 import { ref } from 'vue'
 import Homepage from './components/Homepage.vue'
-import QuestionPage from './components/QuestionPage.vue'
 import ResultPage from './components/ResultPage.vue'
+import QuestionPage from './components/QuestionPage.vue'
 
 const homePage = ref(true);
 const questionPage = ref(false);
