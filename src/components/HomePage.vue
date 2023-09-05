@@ -54,7 +54,7 @@
             </div>
             <div class="row">
                 <div class="col d-flex justify-content-between flex-wrap">
-                    <label class="btn btn-light text-center py-3 fs-5 me-3 mb-3 flex-grow-1" :class="{'active': category === ''}">
+                    <label class="btn btn-light text-center py-3 fs-5 me-3 mb-3 flex-grow-1" :class="{'active': category === null}">
                         <input type="radio" class="d-none" value="" v-model="category">
                         Any Category
                     </label>
@@ -79,6 +79,7 @@ import { useQuizStore } from "../stores/quizStore";
 import { RouterLink } from "vue-router";
 
 const quizStore = useQuizStore();
+await quizStore.getCategories();
 
 const { category, difficulty, categoryList } = storeToRefs(quizStore);
 </script>

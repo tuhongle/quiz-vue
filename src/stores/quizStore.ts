@@ -1,11 +1,13 @@
-import { ref, computed } from "vue";
-import { defineStore } from "pinia";
+import { ref, computed } from "vue"
+import { defineStore } from "pinia"
+
+import { type categoryListType, type question } from '../types/quizTypes'
 
 export const useQuizStore = defineStore('quiz', () => {
     // home page 
-    const categoryList = ref<string[]>([]);
+    const categoryList = ref<categoryListType[]>([]);
     const difficulty = ref<string>('');
-    const category = ref<string>('');
+    const category = ref<number | null>(null);
 
     const getCategories = async () => {
         try {
@@ -17,47 +19,55 @@ export const useQuizStore = defineStore('quiz', () => {
         }
     };
 
-    getCategories();
+    const URL = computed(() => {
+        let url = 'https://opentdb.com/api.php?amount=5&type=multiple';
+        if (difficulty.value) {
+            url += `&difficulty=${difficulty.value}`;
+        }
+        if (category.value) {
+            url += `&category=${category.value}`;
+        }
+        return url;
+    });
 
-/* 
     // question page
 
-    const questionList = ref([]);
-    const currentQuestion = ref({});
-    const currentNumber = ref(1);
-    const backNumber = ref(1);
-    const currentAnswers = ref([]);
-    const currentAnswer = ref('');
-    const yourAnswers = ref([]);
-
-
-    const props = defineProps(['difficulty','category','questionListProps']);
-    const emit = defineEmits(['submit']);
-
-    const correctAnswers = computed(() => {
-        return questionList.value.map(el => el.correct_answer);
-    });
-    const shuffledAnswers = computed(() => {
-        return shuffle(currentAnswers.value);
-    });
-    const titleList = computed(() => {
-        return questionList.value.map(el => el.question);
-    });
-
-    const getQuestionList = async (URL) => {
+    const questionList = ref<question[]>([]);
+    const currentQuestion = ref<question>();
+    const currentNumber = ref<number>(1);
+    const backNumber = ref<number>(1);
+    const currentAnswers = ref<string[]>([]);
+    const currentAnswer = ref<string>('');
+    const yourAnswers = ref<string[]>([]);
+    
+    const getQuestionList = async() => {
         try {
-            const response = await fetch(URL);
+            const response = await fetch(URL.value);
             const jsonResponse = await response.json();
-            return jsonResponse.results;
+            questionList.value = jsonResponse.results;
         } catch (err) {
             console.log(err);
         }
     };
-    const getQuestion = (num) => {
-        currentQuestion.value = questionList.value[num - 1];
-        currentAnswers.value = [currentQuestion.value.correct_answer, ...currentQuestion.value.incorrect_answers]
+    
+    const correctAnswers = computed(() => {
+        return questionList.value.map(el => el.correct_answer);
+    });
+
+    const shuffledAnswers = computed(() => {
+        return shuffle(currentAnswers.value);
+    });
+
+    const titleList = computed(() => {
+        return questionList.value.map(el => el.question);
+    });
+
+    const getQuestion = () => {
+        currentQuestion.value = questionList.value[currentNumber.value - 1];
+        currentAnswers.value = [currentQuestion.value.correct_answer, ...currentQuestion.value.incorrect_answers];
     };
-    const shuffle = (array) => {
+
+    const shuffle = (array: string[]) => {
         let currentIndex = array.length,  randomIndex;
 
         // While there remain elements to shuffle.
@@ -74,48 +84,13 @@ export const useQuizStore = defineStore('quiz', () => {
 
         return array;
     };
+
     const nextQuestion = () => {
-        if (currentNumber.value === 5) {
-            yourAnswers.value.push(currentAnswer.value);
-            emit('submit',[yourAnswers.value, correctAnswers.value, titleList.value, questionList.value]);
-        } else {
-            if (backNumber.value < currentNumber.value) {
-                yourAnswers.value[backNumber.value - 1] = currentAnswer.value;
-                backNumber.value ++;
-                getQuestion(backNumber.value);
-                currentAnswer.value = yourAnswers.value[backNumber.value - 1];
-            } else {
-                yourAnswers.value.push(currentAnswer.value);
-                currentAnswer.value = '';
-                currentNumber.value ++;
-                backNumber.value ++ ;
-                getQuestion(currentNumber.value);
-            }
-        }
-    };
-    const previousQuestion = () => {
-        backNumber.value --;
-        getQuestion(backNumber.value);
-        currentAnswer.value = yourAnswers.value[backNumber.value - 1];
-    };
-    const showPreviousQuestion = (n) => {
-        if (n > backNumber.value) {
-            nextQuestion();
-        };
-        backNumber.value = n;
-        getQuestion(backNumber.value);
-        currentAnswer.value = yourAnswers.value[backNumber.value - 1];
-    };
-
-    if (!props.questionListProps.length) {
-        const URLtoFetch = `https://opentdb.com/api.php?amount=5&category=${props.category}&difficulty=${props.difficulty}&type=multiple`;
-        questionList.value = await getQuestionList(URLtoFetch);
-    } else {
-        questionList.value = props.questionListProps;
+        yourAnswers.value.push(currentAnswer.value);
+        currentNumber.value ++;
     }
-    getQuestion(currentNumber.value);
 
-    // resulte page
+/*     // resulte page
 
     const questionResults = computed(() => {
         const results = [];
@@ -139,9 +114,9 @@ export const useQuizStore = defineStore('quiz', () => {
     const restart = () => {
     };
     const newGame = () => {
-    };
- */
-    return { category, categoryList, difficulty
+    }; */
 
+    return { category, categoryList, difficulty, getCategories
+           , currentAnswer, currentAnswers, currentNumber, questionList, currentQuestion, shuffledAnswers, yourAnswers, getQuestionList, getQuestion, nextQuestion,
     }
 })
