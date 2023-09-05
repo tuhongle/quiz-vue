@@ -1,13 +1,16 @@
 import { ref, computed } from "vue"
 import { defineStore } from "pinia"
+import { useRouter } from "vue-router"
 
 import { type categoryListType, type question } from '../types/quizTypes'
 
 export const useQuizStore = defineStore('quiz', () => {
+    const Router = useRouter();
     // home page 
     const categoryList = ref<categoryListType[]>([]);
     const difficulty = ref<string>('');
     const category = ref<number | null>(null);
+    const newQuestionList = ref<boolean>(true);
 
     const getCategories = async () => {
         try {
@@ -35,7 +38,7 @@ export const useQuizStore = defineStore('quiz', () => {
     const questionList = ref<question[]>([]);
     const currentQuestion = ref<question>();
     const currentNumber = ref<number>(1);
-    const backNumber = ref<number>(1);
+    const backNumber = ref<number>(0);
     const currentAnswers = ref<string[]>([]);
     const currentAnswer = ref<string>('');
     const yourAnswers = ref<string[]>([]);
@@ -44,7 +47,9 @@ export const useQuizStore = defineStore('quiz', () => {
         try {
             const response = await fetch(URL.value);
             const jsonResponse = await response.json();
-            questionList.value = jsonResponse.results;
+            if (newQuestionList.value) {
+                questionList.value = jsonResponse.results;
+            };
         } catch (err) {
             console.log(err);
         }
@@ -67,6 +72,7 @@ export const useQuizStore = defineStore('quiz', () => {
         currentAnswers.value = [currentQuestion.value.correct_answer, ...currentQuestion.value.incorrect_answers];
     };
 
+    /* function to shuffle items inside array */
     const shuffle = (array: string[]) => {
         let currentIndex = array.length,  randomIndex;
 
@@ -86,23 +92,57 @@ export const useQuizStore = defineStore('quiz', () => {
     };
 
     const nextQuestion = () => {
-        yourAnswers.value.push(currentAnswer.value);
+        if (!yourAnswers.value[currentNumber.value - 1]) {
+            yourAnswers.value.push(currentAnswer.value);
+        } else {
+            yourAnswers.value[currentNumber.value - 1] = currentAnswer.value;
+        }
         currentNumber.value ++;
+        backNumber.value = 0;
     }
 
-/*     // resulte page
+    const prevQuestion = () => {
+        if (currentNumber.value > 1) {
+            currentNumber.value --
+        };
+        currentAnswer.value = yourAnswers.value[currentNumber.value - 1];
+        backNumber.value = 0;
+    }
+
+    const chooseQuestion = (n: number) => {
+        if (backNumber.value) {
+            yourAnswers.value[backNumber.value - 1] = currentAnswer.value;
+        }
+        currentNumber.value = n;
+        currentAnswer.value = yourAnswers.value[currentNumber.value - 1];
+        backNumber.value = n;
+    }
+
+    const submitQuestion = () => {
+        if (!yourAnswers.value[currentNumber.value - 1]) {
+            yourAnswers.value.push(currentAnswer.value);
+        } else {
+            yourAnswers.value[currentNumber.value - 1] = currentAnswer.value;
+        }
+        backNumber.value = 0;
+        Router.push('/result');
+    }
+    
+
+    // resulte page
 
     const questionResults = computed(() => {
         const results = [];
-        for (let i = 0; i < props.titleList.length; i ++) {
-            results.push([props.titleList[i], props.correctAnswers[i], props.yourAnswers[i]]);
+        for (let i = 0; i < titleList.value.length; i ++) {
+            results.push([titleList.value[i], correctAnswers.value[i], yourAnswers.value[i]]);
         };
         return results;
     });
+    
     const score = computed(() => {
         let score = 0;
-        for (let i = 0; i < props.correctAnswers.length; i ++) {
-            if (props.yourAnswers[i] === props.correctAnswers[i]) {
+        for (let i = 0; i < correctAnswers.value.length; i ++) {
+            if (yourAnswers.value[i] === correctAnswers.value[i]) {
                 score ++;
             };
         };
@@ -110,13 +150,32 @@ export const useQuizStore = defineStore('quiz', () => {
     });
 
     const tryAgain = () => {
+        newQuestionList.value = false;
+        yourAnswers.value = [];
+        currentNumber.value = 1;
+        getQuestion();
+        Router.push('/question');
     };
     const restart = () => {
+        newQuestionList.value = true;
+        yourAnswers.value = [];
+        currentNumber.value = 1;
+        getQuestion();
+        Router.push('/question');
     };
     const newGame = () => {
-    }; */
+        newQuestionList.value = true;
+        yourAnswers.value = [];
+        currentNumber.value = 1;
+        getQuestion();
+        category.value = null;
+        difficulty.value = '';
+        Router.push('/');
+    };
 
     return { category, categoryList, difficulty, getCategories
-           , currentAnswer, currentAnswers, currentNumber, questionList, currentQuestion, shuffledAnswers, yourAnswers, getQuestionList, getQuestion, nextQuestion,
+           , currentAnswer, currentAnswers, currentNumber, questionList, currentQuestion, shuffledAnswers, yourAnswers
+           , getQuestionList, getQuestion, nextQuestion, prevQuestion, chooseQuestion, submitQuestion
+           , questionResults, score, tryAgain, restart, newGame
     }
 })

@@ -14,14 +14,14 @@
                         </li>                          
                     </ul>
                     <div class="navigation d-flex justify-content-between mb-5">
-                        <button class="btn btn-light px-5 py-3" @click="if (currentNumber > 1) { currentNumber --} ;">Back</button>
-                        <button class="btn btn-light px-5 py-3" @click="quizStore.nextQuestion" :disabled="!currentAnswer" :class="{'active': currentAnswer}">
+                        <button class="btn btn-light px-5 py-3" @click="quizStore.prevQuestion" :disabled="currentNumber === 1">Back</button>
+                        <button class="btn btn-light px-5 py-3" @click="if (currentNumber === 5) { quizStore.submitQuestion() } else { quizStore.nextQuestion() };" :disabled="!currentAnswer" :class="{'active': currentAnswer}">
                             <span v-if="currentNumber !== 5">Next</span>
                             <span v-else>Submit</span>
                         </button>
                     </div>
                     <div class="pagination justify-content-center">
-                        <button class="btn btn-light py-2 px-3 me-2" v-for="n in 5" :key="n" @click="currentNumber = n" :class="{'active': currentNumber === n}">
+                        <button class="btn btn-light py-2 px-3 me-2" v-for="n in 5" :key="n" @click="quizStore.chooseQuestion(n)" :class="{'active': currentNumber === n}" :disabled="!yourAnswers[n-1] && currentNumber !== n">
                             {{ n }}
                         </button>
                     </div>

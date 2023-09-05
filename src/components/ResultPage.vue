@@ -28,13 +28,13 @@
         <div class="container-lg py-5 text-center">
             <div class="row justify-content-center">
                 <div class="col-8 col-md-6 col-lg-4 mb-3 mb-lg-0">
-                    <button class="btn btn-light w-100 py-3 fw-bold" @click="tryAgain">Try Again</button>
+                    <button class="btn btn-light w-100 py-3 fw-bold" @click="quizStore.tryAgain">Try Again</button>
                 </div>
                 <div class="col-8 col-md-6 col-lg-4 mb-3 mb-lg-0">
-                    <button class="btn btn-light w-100 py-3 fw-bold" @click="restart">Restart with new questions</button>
+                    <button class="btn btn-light w-100 py-3 fw-bold" @click="quizStore.restart">Restart with new questions</button>
                 </div>
                 <div class="col-8 col-md-6 col-lg-4 mb-3 mb-lg-0">
-                    <button class="btn btn-light w-100 py-3 fw-bold" @click="newGame">New Game</button>
+                    <button class="btn btn-light w-100 py-3 fw-bold" @click="quizStore.newGame">New Game</button>
                 </div>
             </div>
         </div>
@@ -42,8 +42,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useQuizStore } from '../stores/quizStore';
 
 const quizStore = useQuizStore();
+
+const { questionResults, score } = storeToRefs(quizStore);
 </script>
